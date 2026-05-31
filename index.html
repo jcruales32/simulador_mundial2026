@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador Mundial 2026 — Scoreboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F5F0;--surface:#fff;--surface2:#F7FAF5;
+  --border:#D4DDD0;--text:#1A2E1A;--text2:#3D5C3D;--muted:#7A9A7A;
+  --green:#1E6B1E;--green2:#2E8B2E;--green-lt:#EAF3EA;
+  --gold:#C8960A;--gold-bg:#FFF8E6;
+  --red:#C03030;--shadow:0 4px 20px rgba(0,0,0,0.09);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;}
+.container{max-width:1200px;margin:0 auto;padding:12px;}
+
+/* HEADER */
+header{background:linear-gradient(135deg,#0D3B0D,#1A5C1A,#0F4A1E);color:#fff;padding:20px 16px;text-align:center;border-radius:12px;margin-bottom:16px;box-shadow:var(--shadow);}
+header h1{font-family:'Anton',sans-serif;font-size:32px;margin-bottom:6px;}
+header p{font-size:12px;opacity:0.9;}
+
+/* TABS */
+.tabs{display:flex;gap:8px;margin-bottom:16px;border-bottom:2px solid var(--border);flex-wrap:wrap;}
+.tab-btn{padding:10px 14px;border:none;background:transparent;cursor:pointer;font-weight:700;border-bottom:3px solid transparent;color:var(--muted);transition:all .2s;font-size:12px;}
+.tab-btn.active{color:var(--green);border-bottom-color:var(--green);background:var(--green-lt);}
+
+/* SCOREBOARD */
+.scoreboard{background:#fff;border-radius:14px;padding:20px;margin-bottom:20px;box-shadow:var(--shadow);}
+.match{background:linear-gradient(135deg,#f9f9f9,#fff);border:2px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch;}
+.match-team{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:space-between;}
+.match-team-name{font-weight:700;font-size:13px;margin:6px 0;}
+.match-team-flag{font-size:32px;}
+.team-controls{display:flex;gap:4px;margin-top:8px;}
+.team-controls .score-btn{width:38px;height:38px;font-size:16px;}
+
+.score-display{text-align:center;display:flex;flex-direction:column;justify-content:center;gap:10px;}
+.score-numbers{display:flex;gap:6px;justify-content:center;align-items:center;}
+.score-input{width:50px;height:50px;border:2.5px solid var(--green);border-radius:6px;font-family:'Anton',sans-serif;font-size:26px;text-align:center;color:var(--green);font-weight:700;padding:0;}
+.score-sep{font-family:'Anton',sans-serif;font-size:22px;color:var(--muted);font-weight:700;}
+.score-btn{width:32px;height:32px;border:none;border-radius:5px;font-family:'Anton',sans-serif;font-size:16px;cursor:pointer;transition:all .15s;font-weight:700;padding:0;}
+.score-btn.plus{background:var(--green);color:#fff;}
+.score-btn.plus:hover{background:var(--green2);transform:scale(1.08);}
+.score-btn.minus{background:#e0e0e0;color:var(--text);}
+.score-btn.minus:hover{background:#d0d0d0;transform:scale(1.08);}
+.score-btn.reset{background:var(--muted);color:#fff;width:auto;padding:0 10px;font-size:11px;height:32px;display:flex;align-items:center;}
+
+.match-info{text-align:center;font-size:12px;color:var(--muted);margin-top:10px;}
+
+/* STANDINGS */
+.standings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:15px;}
+.group-table{background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border);}
+.group-header{background:#e8e8e8;padding:14px;display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--border);}
+.group-letter{font-family:'Anton',sans-serif;font-size:36px;color:var(--text);font-weight:900;}
+.group-name{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+
+.group-table table{width:100%;border-collapse:collapse;font-size:12px;}
+.group-table th{background:#fafafa;padding:10px;text-align:left;font-weight:700;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:2px solid var(--border);}
+.group-table td{padding:10px;border-bottom:1px solid var(--border);}
+.group-table tr{background:#fff;border-top:3px solid var(--border);}
+.group-table tr.pos1{border-top-color:var(--green);}
+.group-table tr.pos2{border-top-color:#aaa;}
+.group-table tr.pos3{border-top-color:#d4a574;}
+.group-table tr.pos4{border-top-color:var(--red);}
+
+.team-cell{font-weight:700;}
+.number-cell{text-align:center;color:var(--text2);}
+.pts-cell{text-align:center;font-family:'Anton',sans-serif;font-size:18px;color:var(--green);font-weight:700;background:rgba(76,175,80,0.15);border-radius:6px;padding:4px 8px;}
+
+/* BOTONES */
+.btn-group{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+.btn{padding:10px 16px;border:none;border-radius:8px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green2);}
+.btn-secondary{background:var(--gold);color:#fff;}
+.btn-secondary:hover{background:#b07800;}
+.btn-reset{background:var(--red);color:#fff;}
+.btn-reset:hover{background:#a02020;}
+
+.alert{background:#fff0f0;border:1px solid var(--red);border-radius:8px;padding:12px;margin-bottom:15px;color:var(--red);font-size:13px;}
+.success{background:#f0fff0;border-color:var(--green);color:var(--green);}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>⚽ SIMULADOR MUNDIAL 2026</h1>
+    <p>Scoreboard simplificado — Ingresa marcadores fácilmente</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('grupos')">📅 Grupos</button>
+    <button class="tab-btn" onclick="showTab('posiciones')">🏆 Posiciones</button>
+    <button class="tab-btn" onclick="showTab('ko')">🔴 Fases Finales</button>
+  </div>
+
+  <!-- TAB GRUPOS -->
+  <div id="grupos" class="tab-content active">
+    <div id="grupos-scoreboard"></div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="continuarFasesFinales()" style="background:linear-gradient(135deg,#4CAF50,#45a049);font-weight:700;">▶️ Continuar a Fases Finales</button>
+      <button class="btn btn-primary" onclick="exportarDatos()">💾 Guardar Datos</button>
+      <button class="btn btn-reset" onclick="resetearSimulador()">🔄 Limpiar Todo</button>
+    </div>
+  </div>
+
+  <!-- TAB POSICIONES -->
+  <div id="posiciones" class="tab-content">
+    <div class="standings-grid" id="standings"></div>
+  </div>
+
+  <!-- TAB KO -->
+  <div id="ko" class="tab-content">
+    <div id="ko-info" style="background:#f0f6ff;border:1px solid #aaccee;border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--text2);">
+      ⚠️ Primero completa los grupos. Los 2 primeros de cada grupo avanzan a Ronda de 32.
+    </div>
+    <div id="ko-content"></div>
+    <div class="btn-group" style="margin-top:16px;">
+      <button class="btn btn-primary" onclick="saveSim()">💾 Guardar Simulación</button>
+      <button class="btn btn-reset" onclick="resetKO()">🔄 Limpiar Fases Finales</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────
+var GRUPOS = [
+  {id:"A",teams:["México","Sudáfrica","Corea del Sur","Rep. Checa"]},
+  {id:"B",teams:["Canadá","Bosnia y Herz.","Catar","Suiza"]},
+  {id:"C",teams:["Brasil","Marruecos","Haití","Escocia"]},
+  {id:"D",teams:["Estados Unidos","Paraguay","Australia","Turquía"]},
+  {id:"E",teams:["Alemania","Curazao","Costa de Marfil","Ecuador"]},
+  {id:"F",teams:["Países Bajos","Japón","Suecia","Túnez"]},
+  {id:"G",teams:["Bélgica","Egipto","Irán","Nueva Zelanda"]},
+  {id:"H",teams:["España","Cabo Verde","Arabia Saudita","Uruguay"]},
+  {id:"I",teams:["Francia","Senegal","Iraq","Noruega"]},
+  {id:"J",teams:["Argentina","Argelia","Austria","Jordania"]},
+  {id:"K",teams:["Portugal","Rep. Dem. Congo","Uzbekistán","Colombia"]},
+  {id:"L",teams:["Inglaterra","Croacia","Ghana","Panamá"]}
+];
+
+var BANDERAS = {
+  "México":"🇲🇽","Sudáfrica":"🇿🇦","Corea del Sur":"🇰🇷","Rep. Checa":"🇨🇿",
+  "Canadá":"🇨🇦","Bosnia y Herz.":"🇧🇦","Catar":"🇶🇦","Suiza":"🇨🇭",
+  "Brasil":"🇧🇷","Marruecos":"🇲🇦","Haití":"🇭🇹","Escocia":"🇬🇧",
+  "Estados Unidos":"🇺🇸","Paraguay":"🇵🇾","Australia":"🇦🇺","Turquía":"🇹🇷",
+  "Alemania":"🇩🇪","Curazao":"🇨🇼","Costa de Marfil":"🇨🇮","Ecuador":"🇪🇨",
+  "Países Bajos":"🇳🇱","Japón":"🇯🇵","Suecia":"🇸🇪","Túnez":"🇹🇳",
+  "Bélgica":"🇧🇪","Egipto":"🇪🇬","Irán":"🇮🇷","Nueva Zelanda":"🇳🇿",
+  "España":"🇪🇸","Cabo Verde":"🇨🇻","Arabia Saudita":"🇸🇦","Uruguay":"🇺🇾",
+  "Francia":"🇫🇷","Senegal":"🇸🇳","Iraq":"🇮🇶","Noruega":"🇳🇴",
+  "Argentina":"🇦🇷","Argelia":"🇩🇿","Austria":"🇦🇹","Jordania":"🇯🇴",
+  "Portugal":"🇵🇹","Rep. Dem. Congo":"🇨🇩","Uzbekistán":"🇺🇿","Colombia":"🇨🇴",
+  "Inglaterra":"🇬🇧","Croacia":"🇭🇷","Ghana":"🇬🇭","Panamá":"🇵🇦"
+};
+
+var resultados = {}; // {gid_i_j: {goles_h, goles_a}}
+GRUPOS.forEach(g => {
+  for(var i=0;i<g.teams.length;i++) {
+    for(var j=i+1;j<g.teams.length;j++) {
+      resultados[g.id+"_"+i+"_"+j] = {goles_h:0, goles_a:0};
+    }
+  }
+});
+
+// ── KNOCKOUT ROUNDS ────────────────────────────────
+var koRounds = {
+  'R32': [], // 16 matches
+  'R16': [], // 8 matches (quarterfinals)
+  'QF': [],  // 4 matches (semifinals)
+  'SF': [],  // 2 matches
+  'FINAL': [], // 1 match
+  'THIRD': [], // Tercer puesto
+  'FOURTH': [] // Cuarto puesto
+};
+
+function initKOBracket(){
+  // Obtener clasificados desde grupos (1º, 2º y 3º de cada grupo)
+  var clasificados1 = []; // Primeros - 12 equipos
+  var clasificados2 = []; // Segundos - 12 equipos
+  var clasificados3 = []; // Todos los Terceros - 12 equipos (antes de filtrar los 8 mejores)
+  
+  for(var gi=0; gi<GRUPOS.length; gi++){
+    var standings = calcStandings(GRUPOS[gi].id);
+    
+    if(standings.length >= 1){
+      clasificados1.push({
+        team: standings[0].team, 
+        grupo: GRUPOS[gi].id, 
+        pts: standings[0].pts,
+        dg: standings[0].dg,
+        gf: standings[0].gf
+      });
+    }
+    if(standings.length >= 2){
+      clasificados2.push({
+        team: standings[1].team, 
+        grupo: GRUPOS[gi].id, 
+        pts: standings[1].pts,
+        dg: standings[1].dg,
+        gf: standings[1].gf
+      });
+    }
+    if(standings.length >= 3){
+      clasificados3.push({
+        team: standings[2].team, 
+        grupo: GRUPOS[gi].id, 
+        pts: standings[2].pts,
+        dg: standings[2].dg,
+        gf: standings[2].gf,
+        orden: gi // Mantener orden original como criterio de desempate
+      });
+    }
+  }
+  
+  // Ordenar terceros por: Puntos DESC → Diferencia de Goles DESC → Goles a Favor DESC → Orden del grupo
+  clasificados3.sort((a,b) => {
+    if(b.pts !== a.pts) return b.pts - a.pts;           // Primero por puntos
+    if(b.dg !== a.dg) return b.dg - a.dg;              // Luego por diferencia de goles
+    if(b.gf !== a.gf) return b.gf - a.gf;              // Luego por goles a favor
+    return a.orden - b.orden;                          // Finalmente por orden del grupo
+  });
+  
+  // Tomar solo los 8 mejores terceros
+  var tercerosMejores = clasificados3.slice(0, 8);
+  
+  // Verificar que tenemos suficientes clasificados
+  if(clasificados1.length < 12){
+    console.log('⚠️ Faltan primeros. Tienes:', clasificados1.length);
+    return;
+  }
+  if(clasificados2.length < 12){
+    console.log('⚠️ Faltan segundos. Tienes:', clasificados2.length);
+    return;
+  }
+  if(tercerosMejores.length < 4){
+    console.log('⚠️ Faltan terceros. Tienes:', tercerosMejores.length);
+    return;
+  }
+  
+  // Mostrar información en consola para debug
+  console.log('✅ R32 Clasificados:');
+  console.log('   Primeros:', clasificados1.length);
+  console.log('   Segundos:', clasificados2.length);
+  console.log('   8 Mejores Terceros:', tercerosMejores.length);
+  
+  // Fixture oficial Ronda de 32 - DEFINITIVAMENTE SIN DUPLICADOS
+  // Estructura: 12 Primeros + 12 Segundos + 8 Terceros = 32 equipos
+  // 
+  // Partidos 1-12 usan:
+  // - TODOS 12 Primeros: A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1
+  // - TODOS 12 Segundos: A2, B2, C2, D2, E2, F2, G2, H2, I2, J2, K2, L2
+  //
+  // Partidos 13-16 necesitan 8 equipos más = 8 Terceros
+  // Fixture oficial Ronda de 32 - COMPLETAMENTE CORRECTA, SIN DUPLICADOS
+  //
+  // ESTRUCTURA: 32 EQUIPOS ÚNICOS - 16 PARTIDOS
+  // - 12 Primeros: Todos juegan en partidos 1-12
+  // - 12 Segundos: 8 en partidos 1-8, 4 en partidos 13-16
+  // - 8 Terceros: 4 en partidos 9-12, 4 en partidos 13-16
+  //
+  // Total: 8P + 8S + 4T + 4S + 4T = 32 equipos ✅
+  
+  koRounds.R32 = [
+    // PARTIDOS 1-8: Primeros (A1-H1) vs Segundos (A2-H2)
+    {h: clasificados1[0].team, a: clasificados2[1].team, fecha: '8 Jul', grupos: 'A1 vs B2', fase: 'R32', idx: 0, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados1[1].team, a: clasificados2[0].team, fecha: '10 Jul', grupos: 'B1 vs A2', fase: 'R32', idx: 1, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados1[2].team, a: clasificados2[3].team, fecha: '8 Jul', grupos: 'C1 vs D2', fase: 'R32', idx: 2, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados1[3].team, a: clasificados2[2].team, fecha: '10 Jul', grupos: 'D1 vs C2', fase: 'R32', idx: 3, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados1[4].team, a: clasificados2[5].team, fecha: '8 Jul', grupos: 'E1 vs F2', fase: 'R32', idx: 4, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados1[5].team, a: clasificados2[4].team, fecha: '10 Jul', grupos: 'F1 vs E2', fase: 'R32', idx: 5, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados1[6].team, a: clasificados2[7].team, fecha: '8 Jul', grupos: 'G1 vs H2', fase: 'R32', idx: 6, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados1[7].team, a: clasificados2[6].team, fecha: '10 Jul', grupos: 'H1 vs G2', fase: 'R32', idx: 7, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    
+    // PARTIDOS 9-12: Primeros restantes (I1-L1) vs 4 Mejores Terceros (T1-T4)
+    {h: clasificados1[8].team, a: tercerosMejores[0].team, fecha: '9 Jul', grupos: 'I1 vs 3º mejor 1', fase: 'R32', idx: 8, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados1[9].team, a: tercerosMejores[1].team, fecha: '11 Jul', grupos: 'J1 vs 3º mejor 2', fase: 'R32', idx: 9, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados1[10].team, a: tercerosMejores[2].team, fecha: '9 Jul', grupos: 'K1 vs 3º mejor 3', fase: 'R32', idx: 10, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados1[11].team, a: tercerosMejores[3].team, fecha: '11 Jul', grupos: 'L1 vs 3º mejor 4', fase: 'R32', idx: 11, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    
+    // PARTIDOS 13-16: 4 Segundos sobrantes (I2-L2) vs 4 Terceros restantes (T5-T8)
+    {h: clasificados2[8].team, a: tercerosMejores[4].team, fecha: '9 Jul', grupos: 'I2 vs 3º mejor 5', fase: 'R32', idx: 12, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados2[9].team, a: tercerosMejores[5].team, fecha: '9 Jul', grupos: 'J2 vs 3º mejor 6', fase: 'R32', idx: 13, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados2[10].team, a: tercerosMejores[6].team, fecha: '11 Jul', grupos: 'K2 vs 3º mejor 7', fase: 'R32', idx: 14, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null},
+    {h: clasificados2[11].team, a: tercerosMejores[7].team, fecha: '11 Jul', grupos: 'L2 vs 3º mejor 8', fase: 'R32', idx: 15, faseNombre: 'Ronda de 32', goles_h: 0, goles_a: 0, winner: null}
+  ];
+}
+
+function setKOScore(fase, idx, side, val){
+  val = Math.max(0, Math.min(99, parseInt(val) || 0));
+  koRounds[fase][idx][side === 'h' ? 'goles_h' : 'goles_a'] = val;
+  determineWinner(fase, idx);
+  if(koRounds[fase][idx].winner){
+    advanceRound(fase, idx);
+  }
+  
+  // Si se completan las semifinales, crear partidos de 3º y 4º puesto
+  if(fase === 'SF' && koRounds.SF.length === 2 && koRounds.SF[0].winner && koRounds.SF[1].winner){
+    createThirdAndFourthPlace();
+  }
+  
+  renderKO();
+}
+
+function changeKOScore(fase, idx, side, delta){
+  var newVal = (side === 'h' ? koRounds[fase][idx].goles_h : koRounds[fase][idx].goles_a) + delta;
+  if(newVal < 0) newVal = 0;
+  if(newVal > 99) newVal = 99;
+  setKOScore(fase, idx, side, newVal);
+}
+
+function determineWinner(fase, idx){
+  var match = koRounds[fase][idx];
+  if(match.goles_h > match.goles_a) match.winner = match.h;
+  else if(match.goles_a > match.goles_h) match.winner = match.a;
+  else match.winner = null; // Empate, requiere selección manual
+}
+
+function pickWinner(fase, idx, team){
+  koRounds[fase][idx].winner = team;
+  advanceRound(fase, idx);
+  renderKO();
+}
+
+function advanceRound(currentFase, idx){
+  var match = koRounds[currentFase][idx];
+  if(!match || !match.winner) return;
+  
+  // Mapeo de fases siguientes
+  var nextFaseMap = {
+    R32: 'R16', 
+    R16: 'QF', 
+    QF: 'SF', 
+    SF: 'FINAL',
+    THIRD: null,
+    FOURTH: null,
+    FINAL: null
+  };
+  var nextFase = nextFaseMap[currentFase];
+  if(!nextFase) return;
+  
+  // Inicializar próxima fase si no existe
+  if(koRounds[nextFase].length === 0){
+    var numMatches = {R16: 8, QF: 4, SF: 2, FINAL: 1}[nextFase];
+    for(var i=0; i<numMatches; i++){
+      koRounds[nextFase].push({h: null, a: null, fecha: '', grupos: '', fase: nextFase, idx: i, faseNombre: nextFase, goles_h: 0, goles_a: 0, winner: null});
+    }
+  }
+  
+  // Determinar dónde va el ganador
+  var nextIdx = Math.floor(idx / 2);
+  var side = idx % 2 === 0 ? 'h' : 'a';
+  
+  // Asignar el ganador
+  if(koRounds[nextFase][nextIdx]){
+    koRounds[nextFase][nextIdx][side] = match.winner;
+  }
+}
+
+function createThirdAndFourthPlace(){
+  // Crear UN SOLO partido entre los perdedores de semifinales
+  if(koRounds.SF.length < 2) return;
+  
+  var sf1 = koRounds.SF[0];
+  var sf2 = koRounds.SF[1];
+  
+  if(!sf1 || !sf2 || !sf1.winner || !sf2.winner) return;
+  
+  // Determinar perdedores de semifinales
+  var perdedor1 = (sf1.goles_h > sf1.goles_a) ? sf1.a : sf1.h;
+  var perdedor2 = (sf2.goles_h > sf2.goles_a) ? sf2.a : sf2.h;
+  
+  if(!perdedor1 || !perdedor2) return;
+  
+  // Crear UN SOLO partido: Perdedor SF1 vs Perdedor SF2
+  // El ganador es TERCERO, el perdedor es CUARTO
+  koRounds.THIRD = [{
+    h: perdedor1, 
+    a: perdedor2, 
+    fecha: '24 Jul', 
+    grupos: 'Partido por Tercer y Cuarto Lugar', 
+    fase: 'THIRD', 
+    idx: 0, 
+    faseNombre: '🥉 Tercer Lugar / 📍 Cuarto Lugar', 
+    goles_h: 0, 
+    goles_a: 0, 
+    winner: null,
+    tercer_lugar: null,  // Ganador será 3º
+    cuarto_lugar: null   // Perdedor será 4º
+  }];
+  
+  // FOURTH ahora es solo para mostrar el resultado
+  koRounds.FOURTH = [];
+}
+
+function renderKO(){
+  var html = '';
+  var fases = ['R32', 'R16', 'QF', 'SF', 'THIRD', 'FINAL'];
+  var faseTitles = {
+    'R32': '🎯 Ronda de 32 (8-11 Julio)', 
+    'R16': '⚽ Octavos de Final (14-17 Julio)', 
+    'QF': '🏆 Cuartos de Final (20-21 Julio)', 
+    'SF': '👑 Semifinales (24-25 Julio)', 
+    'THIRD': '🥉/📍 Tercer y Cuarto Lugar (24 Julio)',
+    'FINAL': '🥇 FINAL MUNDIAL (19 Julio)'
+  };
+  
+  for(var fi=0; fi<fases.length; fi++){
+    var fase = fases[fi];
+    
+    html += '<div style="margin-bottom:20px;">';
+    html += '<h3 style="font-family:Anton,sans-serif;font-size:20px;color:var(--green);margin-bottom:12px;border-bottom:2px solid var(--border);padding-bottom:8px;">'+faseTitles[fase]+'</h3>';
+    
+    // Si la fase no tiene partidos aún, mostrar mensaje
+    if(koRounds[fase].length === 0){
+      html += '<div style="padding:12px;background:#e3f2fd;border:1px solid #90caf9;border-radius:8px;color:#1976d2;font-size:12px;">⏳ Esperando ganadores de fase anterior...</div>';
+      html += '</div>';
+      continue;
+    }
+    
+    for(var mi=0; mi<koRounds[fase].length; mi++){
+      var m = koRounds[fase][mi];
+      
+      // Si no hay equipos, mostrar mensaje
+      if(!m.h && !m.a){
+        html += '<div style="padding:12px;background:#f5f5f5;border-radius:8px;color:var(--muted);font-size:12px;margin-bottom:12px;">⏳ Esperando ganadores...</div>';
+        continue;
+      }
+      
+      // Si solo hay un equipo, mostrar que falta el otro
+      if(!m.h || !m.a){
+        var teamName = m.h || m.a || '???';
+        html += '<div style="padding:12px;background:#fff9c4;border:1px solid #fbc02d;border-radius:8px;color:#f57f17;font-size:12px;margin-bottom:12px;">⚠️ '+teamName+' espera rival</div>';
+        continue;
+      }
+      
+      // Partido completo - mostrar formulario
+      html += '<div class="match" style="padding:12px;">';
+      html += '<div class="match-team"><div class="match-team-flag">'+BANDERAS[m.h]+'</div><div class="match-team-name" style="font-size:12px;">'+m.h+'</div><div class="team-controls"><button class="score-btn minus" onclick="changeKOScore(\''+fase+'\','+mi+',\'h\',-1)">−</button><button class="score-btn plus" onclick="changeKOScore(\''+fase+'\','+mi+',\'h\',1)">+</button></div></div>';
+      
+      html += '<div class="score-display">';
+      if(m.fecha) html += '<div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:700;">'+m.fecha+' · '+m.grupos+'</div>';
+      html += '<div class="score-numbers"><input type="number" min="0" max="99" value="'+m.goles_h+'" class="score-input" onchange="setKOScore(\''+fase+'\','+mi+',\'h\',this.value)" onclick="this.select()"><span class="score-sep">:</span><input type="number" min="0" max="99" value="'+m.goles_a+'" class="score-input" onchange="setKOScore(\''+fase+'\','+mi+',\'a\',this.value)" onclick="this.select()"></div>';
+      
+      if(!m.winner && m.goles_h === m.goles_a && m.goles_h > 0){
+        html += '<div style="font-size:11px;color:var(--gold);font-weight:700;">Selecciona ganador (penales):</div>';
+        html += '<div style="display:flex;gap:6px;justify-content:center;margin-top:6px;">';
+        html += '<button class="btn btn-secondary" style="padding:6px 10px;font-size:11px;" onclick="pickWinner(\''+fase+'\','+mi+',\''+m.h+'\')">'+m.h+'</button>';
+        html += '<button class="btn btn-secondary" style="padding:6px 10px;font-size:11px;" onclick="pickWinner(\''+fase+'\','+mi+',\''+m.a+'\')">'+m.a+'</button>';
+        html += '</div>';
+      } else if(m.winner){
+        html += '<div style="font-size:11px;color:var(--green);font-weight:700;text-align:center;">✅ '+m.winner+' avanza</div>';
+      }
+      
+      html += '</div>';
+      
+      html += '<div class="match-team"><div class="match-team-flag">'+BANDERAS[m.a]+'</div><div class="match-team-name" style="font-size:12px;">'+m.a+'</div><div class="team-controls"><button class="score-btn minus" onclick="changeKOScore(\''+fase+'\','+mi+',\'a\',-1)">−</button><button class="score-btn plus" onclick="changeKOScore(\''+fase+'\','+mi+',\'a\',1)">+</button></div></div>';
+      html += '</div>';
+    }
+    
+    html += '</div>';
+  }
+  
+  // Mostrar posiciones finales: Campeón, 2º, 3º y 4º
+  var final_ganador = koRounds.FINAL.length > 0 ? koRounds.FINAL[0].winner : null;
+  var final_perdedor = koRounds.FINAL.length > 0 ? (koRounds.FINAL[0].goles_h > koRounds.FINAL[0].goles_a ? koRounds.FINAL[0].a : koRounds.FINAL[0].h) : null;
+  var tercero = koRounds.THIRD.length > 0 ? koRounds.THIRD[0].winner : null;
+  var cuarto = koRounds.THIRD.length > 0 && koRounds.THIRD[0].goles_h !== koRounds.THIRD[0].goles_a ? (koRounds.THIRD[0].winner === koRounds.THIRD[0].h ? koRounds.THIRD[0].a : koRounds.THIRD[0].h) : null;
+  
+  if(final_ganador){
+    html += '<div style="background:linear-gradient(135deg,var(--gold),#f5c518);border-radius:12px;padding:20px;text-align:center;margin-top:20px;box-shadow:var(--shadow);">';
+    html += '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.7);">🏆 PODIO FINAL MUNDIAL 2026</div>';
+    
+    // Oro - Campeón
+    html += '<div style="margin-top:15px;padding:10px;background:rgba(255,255,255,0.2);border-radius:8px;">';
+    html += '<div style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:5px;">🥇 CAMPEÓN MUNDIAL</div>';
+    html += '<div style="font-family:Anton,sans-serif;font-size:36px;color:#fff;">'+BANDERAS[final_ganador]+'</div>';
+    html += '<div style="font-family:Anton,sans-serif;font-size:24px;color:#fff;">'+final_ganador+'</div>';
+    html += '</div>';
+    
+    // Plata - Subcampeón
+    if(final_perdedor){
+      html += '<div style="margin-top:10px;padding:10px;background:rgba(192,192,192,0.3);border-radius:8px;">';
+      html += '<div style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:5px;">🥈 SUBCAMPEÓN</div>';
+      html += '<div style="font-family:Anton,sans-serif;font-size:32px;color:#fff;">'+BANDERAS[final_perdedor]+'</div>';
+      html += '<div style="font-family:Anton,sans-serif;font-size:20px;color:#fff;">'+final_perdedor+'</div>';
+      html += '</div>';
+    }
+    
+    // Bronce - Tercer lugar
+    if(tercero){
+      html += '<div style="margin-top:10px;padding:10px;background:rgba(205,127,50,0.3);border-radius:8px;">';
+      html += '<div style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:5px;">🥉 TERCER LUGAR</div>';
+      html += '<div style="font-family:Anton,sans-serif;font-size:32px;color:#fff;">'+BANDERAS[tercero]+'</div>';
+      html += '<div style="font-family:Anton,sans-serif;font-size:20px;color:#fff;">'+tercero+'</div>';
+      html += '</div>';
+    }
+    
+    // Cuarto lugar
+    if(cuarto){
+      html += '<div style="margin-top:10px;padding:10px;background:rgba(100,100,100,0.3);border-radius:8px;">';
+      html += '<div style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:5px;">📍 CUARTO LUGAR</div>';
+      html += '<div style="font-family:Anton,sans-serif;font-size:32px;color:#fff;">'+BANDERAS[cuarto]+'</div>';
+      html += '<div style="font-family:Anton,sans-serif;font-size:20px;color:#fff;">'+cuarto+'</div>';
+      html += '</div>';
+    }
+    
+    html += '</div>';
+  }
+  
+  document.getElementById('ko-content').innerHTML = html;
+}
+
+function resetKO(){
+  if(confirm('¿Limpiar todas las fases finales?')){
+    koRounds = {R32: [], R16: [], QF: [], SF: [], THIRD: [], FOURTH: [], FINAL: []};
+    renderKO();
+  }
+}
+
+function saveSim(){
+  alert('✅ Simulación guardada (funcionalidad de almacenamiento en desarrollo)');
+}
+
+// ── INIT ──────────────────────────────────────────
+function init(){
+  renderGruposScoreboard();
+  renderPosiciones();
+}
+
+function showTab(tab){
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  if(tab === 'posiciones') renderPosiciones();
+  if(tab === 'ko'){
+    if(koRounds.R32.length === 0) initKOBracket();
+    renderKO();
+  }
+}
+
+// ── SCOREBOARD ────────────────────────────────────
+function renderGruposScoreboard(){
+  var html = '';
+  
+  // Calendario oficial por jornadas
+  var calendario = [
+    {jornada: 'Jornada 1 (12-13 Junio)', matches: [{g:'A',i:0,j:1,fecha:'12 Jun'},{g:'A',i:2,j:3,fecha:'12 Jun'},{g:'B',i:0,j:1,fecha:'12 Jun'},{g:'B',i:2,j:3,fecha:'13 Jun'},{g:'C',i:0,j:1,fecha:'13 Jun'},{g:'C',i:2,j:3,fecha:'13 Jun'},{g:'D',i:0,j:1,fecha:'13 Jun'},{g:'D',i:2,j:3,fecha:'13 Jun'}]},
+    {jornada: 'Jornada 2 (17-18 Junio)', matches: [{g:'E',i:0,j:1,fecha:'17 Jun'},{g:'E',i:2,j:3,fecha:'17 Jun'},{g:'F',i:0,j:1,fecha:'17 Jun'},{g:'F',i:2,j:3,fecha:'18 Jun'},{g:'G',i:0,j:1,fecha:'18 Jun'},{g:'G',i:2,j:3,fecha:'18 Jun'},{g:'H',i:0,j:1,fecha:'18 Jun'},{g:'H',i:2,j:3,fecha:'18 Jun'}]},
+    {jornada: 'Jornada 3 (22-24 Junio)', matches: [{g:'I',i:0,j:1,fecha:'22 Jun'},{g:'I',i:2,j:3,fecha:'22 Jun'},{g:'J',i:0,j:1,fecha:'23 Jun'},{g:'J',i:2,j:3,fecha:'23 Jun'},{g:'K',i:0,j:1,fecha:'24 Jun'},{g:'K',i:2,j:3,fecha:'24 Jun'},{g:'L',i:0,j:1,fecha:'24 Jun'},{g:'L',i:2,j:3,fecha:'24 Jun'}]},
+    {jornada: 'Jornada 4 (21-22 Junio)', matches: [{g:'A',i:0,j:2,fecha:'21 Jun'},{g:'A',i:1,j:3,fecha:'21 Jun'},{g:'B',i:0,j:2,fecha:'21 Jun'},{g:'B',i:1,j:3,fecha:'22 Jun'},{g:'C',i:0,j:2,fecha:'22 Jun'},{g:'C',i:1,j:3,fecha:'22 Jun'},{g:'D',i:0,j:2,fecha:'22 Jun'},{g:'D',i:1,j:3,fecha:'22 Jun'}]},
+    {jornada: 'Jornada 5 (26-27 Junio)', matches: [{g:'E',i:0,j:2,fecha:'26 Jun'},{g:'E',i:1,j:3,fecha:'26 Jun'},{g:'F',i:0,j:2,fecha:'26 Jun'},{g:'F',i:1,j:3,fecha:'27 Jun'},{g:'G',i:0,j:2,fecha:'27 Jun'},{g:'G',i:1,j:3,fecha:'27 Jun'},{g:'H',i:0,j:2,fecha:'27 Jun'},{g:'H',i:1,j:3,fecha:'27 Jun'}]},
+    {jornada: 'Jornada 6 (1-3 Julio)', matches: [{g:'I',i:0,j:2,fecha:'1 Jul'},{g:'I',i:1,j:3,fecha:'1 Jul'},{g:'J',i:0,j:2,fecha:'2 Jul'},{g:'J',i:1,j:3,fecha:'2 Jul'},{g:'K',i:0,j:2,fecha:'3 Jul'},{g:'K',i:1,j:3,fecha:'3 Jul'},{g:'L',i:0,j:2,fecha:'3 Jul'},{g:'L',i:1,j:3,fecha:'3 Jul'}]},
+    {jornada: 'Jornada 7 (29-30 Junio - Última A-D)', matches: [{g:'A',i:1,j:2,fecha:'29 Jun 16:00'},{g:'A',i:0,j:3,fecha:'29 Jun 16:00'},{g:'B',i:1,j:2,fecha:'29 Jun 20:00'},{g:'B',i:0,j:3,fecha:'29 Jun 20:00'},{g:'C',i:1,j:2,fecha:'30 Jun 16:00'},{g:'C',i:0,j:3,fecha:'30 Jun 16:00'},{g:'D',i:1,j:2,fecha:'30 Jun 20:00'},{g:'D',i:0,j:3,fecha:'30 Jun 20:00'}]},
+    {jornada: 'Jornada 8 (3-4 Julio - Última I-L)', matches: [{g:'I',i:1,j:2,fecha:'3 Jul 16:00'},{g:'I',i:0,j:3,fecha:'3 Jul 16:00'},{g:'J',i:1,j:2,fecha:'3 Jul 20:00'},{g:'J',i:0,j:3,fecha:'3 Jul 20:00'},{g:'K',i:1,j:2,fecha:'4 Jul 16:00'},{g:'K',i:0,j:3,fecha:'4 Jul 16:00'},{g:'L',i:1,j:2,fecha:'4 Jul 20:00'},{g:'L',i:0,j:3,fecha:'4 Jul 20:00'}]},
+    {jornada: 'Jornada 9 (5-6 Julio - Última E-H)', matches: [{g:'E',i:1,j:2,fecha:'5 Jul 16:00'},{g:'E',i:0,j:3,fecha:'5 Jul 16:00'},{g:'F',i:1,j:2,fecha:'5 Jul 20:00'},{g:'F',i:0,j:3,fecha:'5 Jul 20:00'},{g:'G',i:1,j:2,fecha:'6 Jul 16:00'},{g:'G',i:0,j:3,fecha:'6 Jul 16:00'},{g:'H',i:1,j:2,fecha:'6 Jul 20:00'},{g:'H',i:0,j:3,fecha:'6 Jul 20:00'}]}
+  ];
+  
+  // Renderizar por jornada
+  for(var jor=0; jor<calendario.length; jor++){
+    var jornada = calendario[jor].jornada;
+    var matches = calendario[jor].matches;
+    
+    html += '<div style="margin-bottom:18px;">';
+    html += '<h3 style="font-family:Anton,sans-serif;font-size:18px;color:var(--green);margin-bottom:12px;border-bottom:2px solid var(--border);padding-bottom:8px;">'+jornada+'</h3>';
+    
+    for(var mi=0; mi<matches.length; mi++){
+      var matchData = matches[mi];
+      var g = GRUPOS.find(gr => gr.id === matchData.g);
+      var i = matchData.i, j = matchData.j;
+      var key = matchData.g+"_"+i+"_"+j;
+      var res = resultados[key];
+      var t1 = g.teams[i], t2 = g.teams[j];
+      
+      html += '<div class="match" style="padding:12px;">';
+      html += '<div class="match-team"><div class="match-team-flag">'+BANDERAS[t1]+'</div><div class="match-team-name" style="font-size:12px;">'+t1+'</div><div class="team-controls"><button class="score-btn minus" onclick="changeScore(\''+key+'\',\'h\',-1)">−</button><button class="score-btn plus" onclick="changeScore(\''+key+'\',\'h\',1)">+</button></div></div>';
+      
+      html += '<div class="score-display"><div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:700;">📅 '+matchData.fecha+'</div><div class="score-numbers"><input type="number" min="0" max="99" value="'+res.goles_h+'" class="score-input" onchange="setScore(\''+key+'\',\'h\',this.value)" onclick="this.select()"><span class="score-sep">:</span><input type="number" min="0" max="99" value="'+res.goles_a+'" class="score-input" onchange="setScore(\''+key+'\',\'a\',this.value)" onclick="this.select()"></div></div>';
+      
+      html += '<div class="match-team"><div class="match-team-flag">'+BANDERAS[t2]+'</div><div class="match-team-name" style="font-size:12px;">'+t2+'</div><div class="team-controls"><button class="score-btn minus" onclick="changeScore(\''+key+'\',\'a\',-1)">−</button><button class="score-btn plus" onclick="changeScore(\''+key+'\',\'a\',1)">+</button></div></div>';
+      html += '</div>';
+    }
+    
+    html += '</div>';
+  }
+  
+  document.getElementById('grupos-scoreboard').innerHTML = html;
+}
+
+function changeScore(key, side, delta){
+  var res = resultados[key];
+  var newVal = (side === 'h' ? res.goles_h : res.goles_a) + delta;
+  if(newVal < 0) newVal = 0;
+  if(newVal > 99) newVal = 99;
+  setScore(key, side, newVal);
+}
+
+function setScore(key, side, val){
+  val = Math.max(0, Math.min(99, parseInt(val) || 0));
+  if(side === 'h') resultados[key].goles_h = val;
+  else resultados[key].goles_a = val;
+  renderGruposScoreboard();
+  renderPosiciones();
+}
+
+function resetMatch(key){
+  resultados[key] = {goles_h:0, goles_a:0};
+  renderGruposScoreboard();
+  renderPosiciones();
+}
+
+// ── POSICIONES ────────────────────────────────────
+function renderPosiciones(){
+  var html = '<div style="background:#f0f6ff;border:1px solid #aaccee;border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--text2);">✅ Puntos actualizados en tiempo real conforme se ingresan resultados</div>';
+  for(var gi=0; gi<GRUPOS.length; gi++){
+    var g = GRUPOS[gi];
+    var standings = calcStandings(g.id);
+    
+    html += '<div class="group-table">';
+    html += '<div class="group-header"><div class="group-letter">'+g.id+'</div><div class="group-name">Grupo '+g.id+'</div></div>';
+    html += '<table><thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>PTS</th><th>GF</th><th>GC</th><th>DG</th></tr></thead><tbody>';
+    
+    for(var si=0; si<standings.length; si++){
+      var t = standings[si];
+      var posClass = 'pos'+(si+1);
+      html += '<tr class="'+posClass+'">';
+      html += '<td class="number-cell">'+['🥇','🥈','🥉','❌'][si]+'</td>';
+      html += '<td class="team-cell">'+BANDERAS[t.team]+' '+t.team+'</td>';
+      html += '<td class="number-cell">'+t.pj+'</td>';
+      html += '<td class="pts-cell">'+t.pts+'</td>';
+      html += '<td class="number-cell">'+t.gf+'</td>';
+      html += '<td class="number-cell">'+t.ga+'</td>';
+      html += '<td class="number-cell"'+(t.dg>0?' style="color:var(--green)"':t.dg<0?' style="color:var(--red)"':'')+'>'+(t.dg>0?'+':'')+t.dg+'</td>';
+      html += '</tr>';
+    }
+    
+    html += '</tbody></table></div>';
+  }
+  document.getElementById('standings').innerHTML = html;
+}
+
+function calcStandings(gid){
+  var grupo = GRUPOS.find(g => g.id === gid);
+  var teams = [];
+  var n = grupo.teams.length;
+  
+  for(var i=0; i<n; i++){
+    var pts=0, pj=0, gf=0, ga=0;
+    for(var j=0; j<n; j++){
+      if(i===j) continue;
+      var key = i<j ? gid+"_"+i+"_"+j : gid+"_"+j+"_"+i;
+      var res = resultados[key];
+      if(!res) continue;
+      
+      // Solo contar si hay al menos un resultado ingresado
+      pj++;
+      
+      if(i<j){
+        // Equipo i es local (h), equipo j es visitante (a)
+        gf += res.goles_h; 
+        ga += res.goles_a;
+        if(res.goles_h > res.goles_a) pts += 3;      // Victoria local = 3 pts
+        else if(res.goles_h === res.goles_a) pts += 1; // Empate = 1 pt
+        else pts += 0;                                 // Derrota = 0 pts
+      } else {
+        // Equipo i es visitante (a), equipo j es local (h)
+        gf += res.goles_a; 
+        ga += res.goles_h;
+        if(res.goles_a > res.goles_h) pts += 3;      // Victoria visitante = 3 pts
+        else if(res.goles_a === res.goles_h) pts += 1; // Empate = 1 pt
+        else pts += 0;                                 // Derrota = 0 pts
+      }
+    }
+    teams.push({team: grupo.teams[i], pts, pj, gf, ga, dg: gf-ga});
+  }
+  
+  teams.sort((a,b) => {
+    if(b.pts !== a.pts) return b.pts - a.pts;
+    if(b.dg !== a.dg) return b.dg - a.dg;
+    return b.gf - a.gf;
+  });
+  
+  return teams;
+}
+
+// ── UTILIDADES ────────────────────────────────────
+function continuarFasesFinales(){
+  // Verificar si hay al menos algunos resultados en grupos
+  var tieneResultados = false;
+  for(var key in resultados){
+    if(resultados[key].goles_h > 0 || resultados[key].goles_a > 0){
+      tieneResultados = true;
+      break;
+    }
+  }
+  
+  if(!tieneResultados){
+    alert('⚠️ Debes ingresar al menos algunos resultados en los grupos para continuar a las fases finales.');
+    return;
+  }
+  
+  // Inicializar R32 con los clasificados
+  initKOBracket();
+  
+  // Verificar que R32 se creó correctamente
+  if(koRounds.R32.length === 0){
+    alert('❌ Error al generar la Ronda de 32. Verifica que todos los grupos tengan resultados.');
+    return;
+  }
+  
+  // CAMBIAR AL TAB PRIMERO (ANTES DEL ALERT)
+  // Desactivar todos los botones y pestañas
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  
+  // Activar el botón de "Fases Finales" (tercer botón)
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  if(tabBtns[2]) tabBtns[2].classList.add('active');
+  
+  // Activar la pestaña de KO
+  var koTab = document.getElementById('ko');
+  if(koTab) koTab.classList.add('active');
+  
+  // Renderizar KO
+  renderKO();
+  
+  // AHORA mostrar el mensaje de éxito
+  setTimeout(function(){
+    alert('✅ ¡Fases Finales generadas!\n\n' + 
+          'Equipos clasificados:\n' +
+          '• 12 Primeros de grupo\n' +
+          '• 12 Segundos de grupo\n' +
+          '• 8 Mejores Terceros\n\n' +
+          'Total: 32 equipos listos para la Ronda de 32');
+  }, 100);
+}
+
+function exportarDatos(){
+  var csv = 'Grupo,Equipo 1,Goles,Equipo 2,Goles\n';
+  for(var key in resultados){
+    var parts = key.split('_');
+    var gid = parts[0];
+    var i = parseInt(parts[1]);
+    var j = parseInt(parts[2]);
+    var g = GRUPOS.find(gr => gr.id === gid);
+    var res = resultados[key];
+    csv += gid + ',' + g.teams[i] + ',' + res.goles_h + ',' + g.teams[j] + ',' + res.goles_a + '\n';
+  }
+  var blob = new Blob([csv], {type:'text/csv'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'mundial-resultados.csv';
+  a.click();
+}
+
+function resetearSimulador(){
+  if(confirm('¿Estás seguro de que quieres limpiar TODOS los datos?')){
+    for(var key in resultados) resultados[key] = {goles_h:0, goles_a:0};
+    koRounds = {R32: [], R16: [], QF: [], SF: [], THIRD: [], FOURTH: [], FINAL: []};
+    renderGruposScoreboard();
+    renderPosiciones();
+    renderKO();
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>
